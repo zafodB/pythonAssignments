@@ -1,53 +1,33 @@
-import numpy
+import numpy as np
 import matplotlib.pyplot as plotlib
 
+# Read training and test data
+trainingData = np.genfromtxt("irisred_tr.csv", delimiter=',')
+testData = np.genfromtxt("irisred_tst.csv", delimiter=',')
 
-fname = "irisred_tr.csv"
-
-file = open(fname, 'r')
-
-trainingData = numpy.genfromtxt(file, delimiter=',')
-
-# print("Training data:")
-# print(trainingData)
-
-testData = numpy.genfromtxt("irisred_tst.csv", delimiter=',')
-
-# print ()
-# print("Test data:")
-# print(testData)
-
-
-
+# Plot data on Scatter plot, different colors for different classes.
 i = 0
-
 while i < trainingData.shape[0]:
     if trainingData[i,2] == 1 :
         plotlib.scatter(trainingData[i,0], trainingData[i,1], c = "r")
     else:
-        plotlib.scatter(trainingData[i,0], trainingData[i,1], c = "g"
-                        )
+        plotlib.scatter(trainingData[i,0], trainingData[i,1], c = "g")
     i += 1
 
-# plotlib.legend()
-# plotlib.show()
-
-
-myRange = numpy.arange(4.9, 7.2, 0.1)
-
+# Plot histogram
 myHisto = plotlib.figure()
-
 myHisto2 = myHisto.add_subplot(111)
-
 myHisto2.hist(trainingData[:, 0], bins=23, range=(4.9, 7.2))
-# plotlib.show()
 
-def lin_classifier(X, w, b):
-    i = 0;
+plotlib.show()
+
+
+def lin_classifier(x, w, b):
+    i = 0
     mList = []
 
-    while i < X.shape[0]:
-        if (X[i,0:2]@w-b)>=1:
+    while i < x.shape[0]:
+        if (x[i, 0:2]@w-b) >= 1:
             mList.append(1)
         else:
             mList.append(0)
@@ -56,25 +36,49 @@ def lin_classifier(X, w, b):
     return mList
 
 
-# print(lin_classifier(trainingData[:,0:2], [0,1], 0.6 ))
+def acc(x, w, b, t):
 
-def acc(X, w, b, t):
+    lengthOfData = x.shape[0]
 
-    lengthOfData = X.shape[0]
-
-    mList = lin_classifier(X, w, b)
+    mList = lin_classifier(x, w, b)
 
     print(mList)
 
     i = 0
-    sum = 0
+    msum = 0
     while i < lengthOfData:
-        sum += (t[i] - mList[i])
+        msum += abs(t[i] - mList[i])
 
         i += 1
 
-    return 1 - ((1/lengthOfData)*sum)
+    return 1 - ((1/lengthOfData)*msum)
 
 
-print("accuracy shall be: " + str(acc(testData[:, 0:2], [0,1], 0.7, testData[:,2])))
-# print("accuracy shall be: " + str(acc(trainingData[:, 0:2], [0,1], 0.7, trainingData[:,2])))
+paramVector = [0,1]
+paramOffset = 0.7
+
+print("accuracy is: " + str(acc(testData[:, 0:2], paramVector, paramOffset, testData[:,2])))
+
+
+# The best parameters are offset b = 0.7 and normal vector of separation plane W = [0, 1].
+# For these parameters we achieve accuracy of 0.95 for the test data set.
+
+# Other tried parameters were as follows
+#
+# +-------------------------+--------+----------+
+# | Separation Plane Vector | Offset | Accuracy |
+# +-------------------------+--------+----------+
+# | [0, 0]                  |    0.0 |      0.5 |
+# | [0, 0]                  |    0.7 |      0.5 |
+# | [1, 1]                  |    0.0 |      0.5 |
+# | [1, 1]                  |    0.7 |      0.5 |
+# | [1, 0]                  |    0.0 |      0.5 |
+# | [1, 0]                  |    0.7 |      0.5 |
+# | [0, 1]                  |    0.5 |    0.875 |
+# | [0, 1]                  |    0.6 |      0.9 |
+# |                         |        |          |
+# | [0, 1]                  |    0.7 |     0.95 |
+# | [0, 1]                  |    0.8 |     0.95 |
+# |                         |        |          |
+# | [0, 1]                  |    0.9 |      0.8 |
+# +-------------------------+--------+----------+
