@@ -1,3 +1,7 @@
+'''
+ * Created by Filip Adamik on 11/02/2018
+'''
+
 import numpy as np
 import matplotlib.pyplot as plotlib
 
@@ -59,26 +63,28 @@ paramOffset = 0.7
 
 print("accuracy is: " + str(acc(testData[:, 0:2], paramVector, paramOffset, testData[:,2])))
 
+'''
+The best parameters are offset b = 0.7 and normal vector of separation plane W = [0, 1].
+For these parameters we achieve accuracy of 0.95 for the test data set.
 
-# The best parameters are offset b = 0.7 and normal vector of separation plane W = [0, 1].
-# For these parameters we achieve accuracy of 0.95 for the test data set.
+Other tried parameters were as follows
 
-# Other tried parameters were as follows
-#
-# +-------------------------+--------+----------+
-# | Separation Plane Vector | Offset | Accuracy |
-# +-------------------------+--------+----------+
-# | [0, 0]                  |    0.0 |      0.5 |
-# | [0, 0]                  |    0.7 |      0.5 |
-# | [1, 1]                  |    0.0 |      0.5 |
-# | [1, 1]                  |    0.7 |      0.5 |
-# | [1, 0]                  |    0.0 |      0.5 |
-# | [1, 0]                  |    0.7 |      0.5 |
-# | [0, 1]                  |    0.5 |    0.875 |
-# | [0, 1]                  |    0.6 |      0.9 |
-# |                         |        |          |
-# | [0, 1]                  |    0.7 |     0.95 |
-# | [0, 1]                  |    0.8 |     0.95 |
-# |                         |        |          |
-# | [0, 1]                  |    0.9 |      0.8 |
-# +-------------------------+--------+----------+
++-------------------------+--------+----------+
+| Separation Plane Vector | Offset | Accuracy |
++-------------------------+--------+----------+
+| [0, 0]                  |    0.0 |      0.5 |
+| [0, 0]                  |    0.7 |      0.5 |
+| [1, 1]                  |    0.0 |      0.5 |
+| [1, 1]                  |    0.7 |      0.5 |
+| [1, 0]                  |    0.0 |      0.5 |
+| [1, 0]                  |    0.7 |      0.5 |
+| [0, 1]                  |    0.5 |    0.875 |
+| [0, 1]                  |    0.6 |      0.9 |
+|                         |        |          |
+| [0, 1]                  |    0.7 |     0.95 |
+| [0, 1]                  |    0.8 |     0.95 |
+|                         |        |          |
+| [0, 1]                  |    0.9 |      0.8 |
++-------------------------+--------+----------+
+
+'''
