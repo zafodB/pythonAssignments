@@ -21,7 +21,22 @@ while i < trainingData.shape[0]:
 # Plot histogram
 myHisto = plotlib.figure()
 myHisto2 = myHisto.add_subplot(111)
-myHisto2.hist(trainingData[:, 0], bins=23, range=(4.9, 7.2))
+
+ones = []
+zeros = []
+i = 0
+while i < trainingData.shape[0]:
+    if trainingData[i,2] == 1:
+        # myHisto2.hist(trainingData[i, 0], bins=23, range=(4.9, 7.2), color="r")
+        ones.append(trainingData[i, 0])
+    else:
+        # myHisto2.hist(trainingData[i, 0], bins=23, range=(4.9, 7.2), color="g")
+        zeros.append(trainingData[i, 0])
+    i += 1
+
+myHisto2.hist(zeros, bins=23, range=(4.9, 7.2), alpha = 0.7, color="r", label="Iris Versicolor")
+myHisto2.hist(ones, bins=23, range=(4.9, 7.2), alpha = 0.7, color="g", label="Iris Virginica")
+myHisto2.legend(loc="upper right")
 
 plotlib.show()
 
