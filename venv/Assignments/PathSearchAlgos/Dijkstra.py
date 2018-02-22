@@ -35,7 +35,7 @@ def main():
 
     visited_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
 
-    # visit_stack =
+    visit_stack =
     # print(visited_map)
 
     def set_start(x,y):
