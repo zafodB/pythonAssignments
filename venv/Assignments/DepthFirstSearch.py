@@ -70,7 +70,7 @@ def main():
         # print("x: " + str(x) + " y: " + str(y))
 
         myMap[x][y] = 0
-        # print_map(myMap)
+        print_map(myMap)
 
         if x == xGoal and y == yGoal:
             goalFound = True
@@ -86,8 +86,6 @@ def main():
             q.put([x, y - 1])
         if x - 1 >= 0 and not myMap[x - 1][y] == 0 and not myMap[x - 1][y] == -2 and not goalFound:
             q.put([x - 1, y])
-
-
 
     def print_map(my_map):
         y = 0
@@ -132,13 +130,12 @@ def main():
     set_start(xStart, yStart)
 
     print_map(myMap)
-    # dsf(xStart, yStart)
+    dsf(xStart, yStart)
 
-    q.put([xStart, yStart])
-    while not q.empty():
-        xy = q.get()
-        bfs(xy[0], xy[1])
-
+    # q.put([xStart, yStart])
+    # while not q.empty():
+    #     xy = q.get()
+    #     bfs(xy[0], xy[1])
 
     print_map(myMap)
 
