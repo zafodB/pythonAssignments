@@ -2,6 +2,8 @@
  * Created by filip on 22/02/2018
 '''
 
+import queue
+
 def main():
     world_map = [[3, 8, 2, 8, 10, 5, 5, 9, 5, 4, 4, 4, 5, 10, 4],
                  [1, 6, 8, 1, 4, 1, 3, 5, 4, 1, 7, 8, 1, 7, 9],
@@ -31,12 +33,76 @@ def main():
     goal_x = 12
     goal_y = 13
 
-    # to_visit = dict(1:a[0,0]);
+    to_visit = dict()
+    # i = 1
+    # while i < 10:
+    #     if i not in to_visit:
+    #         to_visit[i] = queue.Queue()
+    #     to_visit[i].put([1, i])
+    #     i += 1
 
+    distance_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
     visited_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
 
-    visit_stack =
+    # visit_stack =
     # print(visited_map)
+
+    def dijkstra(x, y):
+
+        def add_to_visitlist(dist, vx, vy):
+            nonlocal to_visit
+
+            if distance not in to_visit:
+                to_visit[dist] = queue.Queue()
+            to_visit[dist].put([vx, vy])
+
+        nonlocal to_visit
+        nonlocal visited_map
+        nonlocal map_dim_x
+        nonlocal map_dim_y
+
+        if not visited_map[y][x] == 1:
+            visited_map[y][x] = 1
+
+            if not x - 1 < 0 and not visited_map[y][x - 1] == 1:
+                distance = distance_map[y][x] + world_map[y][x - 1]
+
+                if distance_map[y][x - 1] == 0:
+                    distance_map[y][x - 1] = distance
+                elif distance < distance_map[y][x - 1]:
+                    distance_map[y][x - 1] = distance
+
+                add_to_visitlist(distance, x - 1, y)
+
+            if not y - 1 < 0 and not visited_map[y - 1][x] == 1:
+                distance = distance_map[y][x] + world_map[y - 1][x]
+
+                if distance_map[y - 1][x] == 0:
+                    distance_map[y - 1][x] = distance
+                elif distance < distance_map[y - 1][x]:
+                    distance_map[y - 1][x] = distance
+
+                add_to_visitlist(distance, x, y - 1)
+
+            if not x + 1 >= map_dim_x and not visited_map[y][x + 1] == 1:
+                distance = distance_map[y][x] + world_map[y][x + 1]
+
+                if distance_map[y][x + 1] == 0:
+                    distance_map[y][x + 1] = distance
+                elif distance < distance_map[y][x + 1]:
+                    distance_map[y][x + 1] = distance
+
+                add_to_visitlist(distance, x + 1, y)
+
+            if not y + 1 >= map_dim_y and not visited_map[y + 1][x] == 1:
+                distance = distance_map[y][x] + world_map[y + 1][x]
+
+                if distance_map[y + 1][x] == 0:
+                    distance_map[y + 1][x] = distance
+                elif distance < distance_map[y + 1][x]:
+                    distance_map[y + 1][x] = distance
+
+                add_to_visitlist(distance, x, y + 1)
 
     def set_start(x,y):
         nonlocal world_map
@@ -57,28 +123,45 @@ def main():
 
                 brd = 0
                 while brd < (map_dim_x):
-                    print("___", end="")
+                    print("____", end="")
                     brd += 1
                 print("__")
             print("|", end="")
 
             while x < (map_dim_x):
                 if (pmap[y][x] == -1):
-                    print("   ", end="")
+                    print("    ", end="")
                 else:
-                    print("%02d " % (pmap[y][x]), end="")
+                    print("%03d " % (pmap[y][x]), end="")
                 x += 1
             print("|")
             y += 1
 
         brd = 0
         while brd < map_dim_x:
-            print("¯¯¯", end="")
+            print("¯¯¯¯", end="")
             brd += 1
         print("¯¯")
 
     set_start(start_x, start_y)
     set_goal(goal_x, goal_y)
     print_visited(world_map)
+
+    dijkstra(start_x, start_y)
+
+    while to_visit.keys():
+        i = 0
+        while i < 200:
+            if i in to_visit:
+                if to_visit[i].empty():
+                    del to_visit[i]
+                else:
+                    xypair = to_visit[i].get()
+                    dijkstra(xypair[0], xypair[1])
+            i += 1
+
+
+    print_visited(visited_map)
+    print_visited(distance_map)
 
 main()
