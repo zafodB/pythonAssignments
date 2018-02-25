@@ -35,18 +35,9 @@ def main():
     goal_y = 13
 
     to_visit = dict()
-    # i = 1
-    # while i < 10:
-    #     if i not in to_visit:
-    #         to_visit[i] = queue.Queue()
-    #     to_visit[i].put([1, i])
-    #     i += 1
 
-    distance_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
+    distance_map = [[[0 for k in range(2)] for i in range(map_dim_x)] for j in range(map_dim_y)]
     visited_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
-
-    # visit_stack =
-    # print(visited_map)
 
     def dijkstra(x, y):
 
@@ -61,57 +52,66 @@ def main():
         nonlocal visited_map
         nonlocal map_dim_x
         nonlocal map_dim_y
+        nonlocal goal_x
+        nonlocal goal_y
+
+        print_visited([[row[0] for row in distance_map[i]] for i in range(map_dim_y)])
 
         if not visited_map[y][x] == 1:
             visited_map[y][x] = 1
 
+            # 1 - right
+            # 2 - bottom
+            # 3 - left
+            # 4 - top
+
+            # Came from the right
             if not x - 1 < 0 and not visited_map[y][x - 1] == 1:
-                distance = distance_map[y][x] + world_map[y][x - 1]
+                distance = distance_map[y][x][0] + world_map[y][x - 1]
 
-                if distance_map[y][x - 1] == 0:
-                    distance_map[y][x - 1] = distance
-                elif distance < distance_map[y][x - 1]:
-                    distance_map[y][x - 1] = distance
+                if distance_map[y][x - 1][0] == 0:
+                    distance_map[y][x - 1][0] = distance
+                    distance_map[y][x - 1][1] = 1
+                    if x - 1 == goal_x and y == goal_y:
+                        return True
+                    else:
+                        add_to_visitlist(distance, x - 1, y)
 
-                add_to_visitlist(distance, x - 1, y)
-
+            # Came from the bottom
             if not y - 1 < 0 and not visited_map[y - 1][x] == 1:
-                distance = distance_map[y][x] + world_map[y - 1][x]
+                distance = distance_map[y][x][0] + world_map[y - 1][x]
 
-                if distance_map[y - 1][x] == 0:
-                    distance_map[y - 1][x] = distance
-                elif distance < distance_map[y - 1][x]:
-                    distance_map[y - 1][x] = distance
+                if distance_map[y - 1][x][0] == 0:
+                    distance_map[y - 1][x][0] = distance
+                    distance_map[y - 1][x][1] = 2
+                    if x == goal_x and y - 1 == goal_y:
+                        return True
+                    else:
+                        add_to_visitlist(distance, x, y - 1)
 
-                add_to_visitlist(distance, x, y - 1)
-
+            # Came from the left
             if not x + 1 >= map_dim_x and not visited_map[y][x + 1] == 1:
-                distance = distance_map[y][x] + world_map[y][x + 1]
+                distance = distance_map[y][x][0] + world_map[y][x + 1]
 
-                if distance_map[y][x + 1] == 0:
-                    distance_map[y][x + 1] = distance
-                elif distance < distance_map[y][x + 1]:
-                    distance_map[y][x + 1] = distance
+                if distance_map[y][x + 1][0] == 0:
+                    distance_map[y][x + 1][0] = distance
+                    distance_map[y][x + 1][1] = 3
+                    if x + 1 == goal_x and y == goal_y:
+                        return True
+                    else:
+                        add_to_visitlist(distance, x + 1, y)
 
-                add_to_visitlist(distance, x + 1, y)
-
+            # Came from the top
             if not y + 1 >= map_dim_y and not visited_map[y + 1][x] == 1:
-                distance = distance_map[y][x] + world_map[y + 1][x]
+                distance = distance_map[y][x][0] + world_map[y + 1][x]
 
-                if distance_map[y + 1][x] == 0:
-                    distance_map[y + 1][x] = distance
-                elif distance < distance_map[y + 1][x]:
-                    distance_map[y + 1][x] = distance
-
-                add_to_visitlist(distance, x, y + 1)
-
-    def set_start(x,y):
-        nonlocal world_map
-        world_map[y][x] = -1
-
-    def set_goal(x,y):
-        nonlocal world_map
-        world_map[y][x] = -1
+                if distance_map[y + 1][x][0] == 0:
+                    distance_map[y + 1][x][0] = distance
+                    distance_map[y + 1][x][1] = 4
+                    if x == goal_x and y + 1 == goal_y:
+                        return True
+                    else:
+                        add_to_visitlist(distance, x, y + 1)
 
     def print_visited(pmap):
         nonlocal map_dim_y
@@ -124,45 +124,115 @@ def main():
 
                 brd = 0
                 while brd < (map_dim_x):
-                    print("____", end="")
+                    print("___", end="")
                     brd += 1
                 print("__")
             print("|", end="")
 
             while x < (map_dim_x):
                 if (pmap[y][x] == -1):
-                    print("    ", end="")
+                    print("   ", end="")
+                elif (pmap[y][x] == 0):
+                    print("   ", end="")
                 else:
-                    print("%03d " % (pmap[y][x]), end="")
+                    print("%02d " % (pmap[y][x]), end="")
                 x += 1
             print("|")
             y += 1
 
         brd = 0
         while brd < map_dim_x:
-            print("¯¯¯¯", end="")
+            print("¯¯¯", end="")
             brd += 1
         print("¯¯")
 
-    set_start(start_x, start_y)
-    set_goal(goal_x, goal_y)
+    def print_path(pmap):
+        nonlocal map_dim_y
+        nonlocal map_dim_x
+        nonlocal distance_map
+
+        y = 0
+        while y < (map_dim_y):
+            x = 0
+            if y == 0:
+
+                brd = 0
+                while brd < (map_dim_x):
+                    print("___", end="")
+                    brd += 1
+                print("__")
+            print("|", end="")
+
+            while x < (map_dim_x):
+                if (pmap[y][x] == 1):
+                    print("%02d " % (distance_map[y][x][0]), end="")
+                elif (pmap[y][x] == 0):
+                    print("   ", end="")
+
+                x += 1
+            print("|")
+            y += 1
+
+        brd = 0
+        while brd < map_dim_x:
+            print("¯¯¯", end="")
+            brd += 1
+        print("¯¯")
+
+    def make_path(pmap):
+        nonlocal visited_map
+        nonlocal goal_x
+        nonlocal goal_y
+        nonlocal start_x
+        nonlocal start_y
+
+        visited_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
+
+        def create_path(x, y):
+            nonlocal start_x
+            nonlocal start_y
+
+            visited_map[y][x] = 1
+
+            if pmap[y][x][1] == 1:
+               create_path(x + 1, y)
+            elif pmap[y][x][1] == 2:
+                create_path(x, y + 1)
+            elif pmap[y][x][1] == 3:
+                create_path(x - 1, y)
+            elif pmap[y][x][1] == 4:
+                create_path(x, y - 1)
+
+        create_path(goal_x, goal_y)
+
     print_visited(world_map)
 
     dijkstra(start_x, start_y)
 
+    goal_found = False
     while to_visit.keys():
+        if goal_found:
+            break
         i = 0
-        while i < 200:
+        while i < 100:
+            if goal_found:
+                break
+
             if i in to_visit:
-                if to_visit[i].empty():
-                    del to_visit[i]
-                else:
+                while not to_visit[i].empty():
                     xypair = to_visit[i].get()
-                    dijkstra(xypair[0], xypair[1])
+                    if dijkstra(xypair[0], xypair[1]):
+                        goal_found = True
+                        break
+
+                del to_visit[i]
             i += 1
 
+    # distance_map2 = [[row[0] for row in distance_map[i]] for i in range(map_dim_y)]
+    print_visited([[row[0] for row in distance_map[i]] for i in range(map_dim_y)])
 
-    print_visited(visited_map)
-    print_visited(distance_map)
+    make_path(distance_map)
+    print_path(visited_map)
+
 
 main()
