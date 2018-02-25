@@ -41,7 +41,20 @@ def main():
     distance_map = [[[0 for k in range(3)] for i in range(map_dim_x)] for j in range(map_dim_y)]
     visited_map = [[0 for i in range(map_dim_x)] for j in range(map_dim_y)]
 
-    def dijkstra(x, y):
+    def heuristics():
+        nonlocal goal_x
+        nonlocal goal_y
+
+        y = 0
+        for i in distance_map:
+            x = 0
+            for j in i:
+                j[2] = (abs(x - goal_x) + abs(y - goal_y))
+                # print("x: " + str(x) + " y: " + str(y) + " j: " + str(j[2]))
+                x += 1
+            y += 1
+
+    def a_star(x, y):
 
         def add_to_visitlist(dist, vx, vy):
             nonlocal to_visit
@@ -75,50 +88,54 @@ def main():
             # Came from the right
             if not x - 1 < 0 and not visited_map[y][x - 1] == 1:
                 distance = distance_map[y][x][0] + world_map[y][x - 1]
+                distance_h = distance + distance_map[y][x - 1][2]
 
                 if distance_map[y][x - 1][0] == 0:
                     distance_map[y][x - 1][0] = distance
                     distance_map[y][x - 1][1] = 1
-                    add_to_visitlist(distance, x - 1, y)
+                    add_to_visitlist(distance_h, x - 1, y)
                 elif distance_map[y][x - 1][0] > distance:
                     distance_map[y][x - 1][0] = distance
                     distance_map[y][x - 1][1] = 1
-                    add_to_visitlist(distance, x - 1, y)
+                    add_to_visitlist(distance_h, x - 1, y)
 
             # Came from the bottom
             if not y - 1 < 0 and not visited_map[y - 1][x] == 1:
                 distance = distance_map[y][x][0] + world_map[y - 1][x]
+                distance_h = distance + distance_map[y - 1][x][2]
 
                 if distance_map[y - 1][x][0] == 0:
                     distance_map[y - 1][x][0] = distance
                     distance_map[y - 1][x][1] = 2
-                    add_to_visitlist(distance, x, y - 1)
+                    add_to_visitlist(distance_h, x, y - 1)
                 elif distance_map[y - 1][x][0] > distance:
                     distance_map[y - 1][x][0] = distance
                     distance_map[y - 1][x][1] = 2
-                    add_to_visitlist(distance, x, y - 1)
+                    add_to_visitlist(distance_h, x, y - 1)
 
             # Came from the left
             if not x + 1 >= map_dim_x and not visited_map[y][x + 1] == 1:
                 distance = distance_map[y][x][0] + world_map[y][x + 1]
+                distance_h = distance + distance_map[y][x + 1][2]
 
                 if distance_map[y][x + 1][0] == 0:
                     distance_map[y][x + 1][0] = distance
                     distance_map[y][x + 1][1] = 3
-                    add_to_visitlist(distance, x + 1, y)
+                    add_to_visitlist(distance_h, x + 1, y)
                 elif distance_map[y][x + 1][0] > distance:
                     distance_map[y][x + 1][0] = distance
                     distance_map[y][x + 1][1] = 3
-                    add_to_visitlist(distance, x + 1, y)
+                    add_to_visitlist(distance_h, x + 1, y)
 
             # Came from the top
             if not y + 1 >= map_dim_y and not visited_map[y + 1][x] == 1:
                 distance = distance_map[y][x][0] + world_map[y + 1][x]
+                distance_h = distance + distance_map[y + 1][x][2]
 
                 if distance_map[y + 1][x][0] == 0:
                     distance_map[y + 1][x][0] = distance
                     distance_map[y + 1][x][1] = 4
-                    add_to_visitlist(distance, x, y + 1)
+                    add_to_visitlist(distance_h, x, y + 1)
                 elif distance_map[y + 1][x][0] > distance:
                     distance_map[y + 1][x][0] = distance
                     distance_map[y + 1][x][1] = 4
@@ -205,6 +222,11 @@ def main():
 
             visited_map[y][x] = 1
 
+            # distance_u = pmap[y - 1][x][0]
+            # distance_r = pmap[y][x + 1][0]
+            # distance_d = pmap[y + 1][x][0]
+            # distance_l = pmap[y][x - 1][0]
+
             if pmap[y][x][1] == 1:
                 create_path(x + 1, y)
             elif pmap[y][x][1] == 2:
@@ -218,7 +240,8 @@ def main():
 
     print_visited(world_map)
 
-    dijkstra(start_x, start_y)
+    heuristics()
+    a_star(start_x, start_y)
 
     goal_found = False
     while to_visit.keys():
@@ -232,7 +255,7 @@ def main():
             if i in to_visit:
                 while not to_visit[i].empty():
                     xypair = to_visit[i].get()
-                    if dijkstra(xypair[0], xypair[1]):
+                    if a_star(xypair[0], xypair[1]):
                         goal_found = True
                         break
 
