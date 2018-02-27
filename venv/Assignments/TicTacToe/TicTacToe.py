@@ -2,13 +2,22 @@
  * Created by filip on 26/02/2018
 '''
 
+import copy
+
 def main():
 
     board = [["." for j in range(3)] for i in range(3)]
 
-    board = [[".", ".", "X"],
+    board = [[".", ".", "."],
              [".", ".", "."],
-             [".", ".", "X"]]
+             [".", ".", "."]]
+
+    # y = 0
+    # while y < 3:
+    #     x = 0
+    #     while x < 3:
+    #         x += 1
+    #     y += 1
 
     def print_board(to_print):
         print("___________")
@@ -22,38 +31,29 @@ def main():
         print("¯¯¯¯¯¯¯¯¯¯¯")
 
     def user_turn():
-        print_board()
+        print_board(board)
 
         while True:
             user_input = input("\n Please press number 1 - 9 to place X\n")
             if len(user_input) == 1:
-                if user_input == "1" and board[0][0] == ".":
-                        board[0][0] = "X"
-                        break
-                if user_input == "2" and board[0][1] == ".":
-                        board[0][1] = "X"
-                        break
-                if user_input == "3" and board[0][2] == ".":
-                        board[0][2] = "X"
-                        break
+                if user_input == "1" and board[2][0] == ".":
+                    return place_tile(0, 2, "X")
+                if user_input == "2" and board[2][1] == ".":
+                    return place_tile(1, 2, "X")
+                if user_input == "3" and board[2][2] == ".":
+                    return place_tile(2, 2, "X")
                 if user_input == "4" and board[1][0] == ".":
-                        board[1][0] = "X"
-                        break
+                    return place_tile(0, 1, "X")
                 if user_input == "5" and board[1][1] == ".":
-                        board[1][1] = "X"
-                        break
+                    return place_tile(1, 1, "X")
                 if user_input == "6" and board[1][2] == ".":
-                        board[1][2] = "X"
-                        break
-                if user_input == "7" and board[2][0] == ".":
-                        board[2][0] = "X"
-                        break
-                if user_input == "8" and board[2][1] == ".":
-                        board[2][1] = "X"
-                        break
-                if user_input == "9" and board[2][2] == ".":
-                        board[2][2] = "X"
-                        break
+                    return place_tile(2, 1, "X")
+                if user_input == "7" and board[0][0] == ".":
+                    return place_tile(0, 0, "X")
+                if user_input == "8" and board[0][1] == ".":
+                    return place_tile(1, 0, "X")
+                if user_input == "9" and board[0][2] == ".":
+                    return place_tile(2, 0, "X")
                 print("Try again.")
 
     def user_turn_by_ai(hboard):
@@ -79,11 +79,18 @@ def main():
 
         return hboard
 
+    def place_tile(x, y, char):
+        nonlocal board
+        board[y][x] = char
+
+        return is_win_move(board, x, y, char)
 
     def ai_turn1():
 
-        def find_best_move(on_map):
-            pos_nxt_map = consider_posibilities(on_map, "O")
+        def find_best_move(on_map, char):
+            pos_nxt_map = consider_posibilities(on_map, char)
+
+            # print(pos_nxt_map)
 
             best_value = 0
             best_v_x = -1
@@ -100,28 +107,72 @@ def main():
 
                 y += 1
 
-            return [best_v_x, best_v_y]
+            return [best_v_x, best_v_y, best_value]
 
         nonlocal board
 
-        best_vals1 = find_best_move(board)
+        next_turn_win = consider_posibilities(board, "O")
+        need_break = False
+        y = 0
+        while y < 3:
+            x = 0
+            while x < 3:
+                if next_turn_win[y][x] == 45 or next_turn_win[y][x] == 100:
+                    need_break = True
+                    break
+                x += 1
 
-        hypot_board = list(board)
-        hypot_board[best_vals1[1]][best_vals1[0]] = "O"
+            if need_break:
+                break
+            y += 1
 
-        print_board(hypot_board)
+        if need_break:
+            if place_tile(x, y, "O"):
+                return True
 
-        hypot_board2 = user_turn_by_ai(hypot_board)
+            # print_board(board)
+        else:
+            options = [[0 for l in range(3)] for k in range(3)]
 
-        print_board(hypot_board2)
+            y = 0
+            while y < 3:
+                x = 0
+                while x < 3:
+                    # hypot_board = list(board)
+                    # hypot_board = copy.copy(board)
+                    hypot_board = [0 for l in range(3)]
 
-        # print("I think the best position for the tile would be: x=" + str(best_vals1[0]) + " y=" + str(best_vals1[1]))
+                    i = 0
+                    for row in board:
+                        hypot_board[i] = list(row)
+                        i += 1
 
-        # user_turn_by_ai(hypot_board)
+                    # hypot_board = board[:]
 
-        def place_tile(x, y, char):
-            nonlocal board
-            board[y][x] = char
+                    hypot_board[y][x] = "O"
+                    next_user_move = find_best_move(hypot_board, "X")
+                    hypot_board[next_user_move[1]][next_user_move[0]] = "X"
+
+                    options[y][x] = find_best_move(hypot_board, "O")
+
+                    x += 1
+                y += 1
+
+            best_option_cost = 0
+            best_option_x = 0
+            best_option_y = 0
+
+            for row in options:
+                for cell in row:
+                    if cell[2] > best_option_cost:
+                        best_option_cost = cell[2]
+                        best_option_x = cell[0]
+                        best_option_y = cell[1]
+
+            if place_tile(best_option_x, best_option_y, "O"):
+                return True
+
+        return False
 
     def evaluate_turn(hboard, mx, my, mchar):
         if not is_valid_move(hboard, mx, my):
@@ -129,12 +180,13 @@ def main():
         if is_win_move(hboard, mx, my, mchar):
             return True
         if need_to_block(hboard, mx, my, mchar):
-            return 50
+            return 45
 
         return 2
 
     def consider_posibilities(hboard, nchar):
         next_turn_map = [[0 for j in range(3)] for i in range(3)]
+
         y = 0
         while y < 3:
             x = 0
@@ -144,15 +196,18 @@ def main():
                 if not eval_res:
                     x += 1
                     continue
+                elif eval_res == 45:
+                    next_turn_map[y][x] = 45
                 elif eval_res == 2:
                     next_turn_map[y][x] = 2
-
                 elif eval_res:
                     next_turn_map[y][x] = 100
 
                 x += 1
             y += 1
+
         # print_board(next_turn_map)
+        # print(next_turn_map)
 
         return next_turn_map
 
@@ -226,7 +281,26 @@ def main():
     # print(need_to_block(board, 0, 2, "0"))
 
     # print_board(board)
-    ai_turn1()
 
+    tile = 0
+    if input("Wanna start? y/n") == "y":
+
+        user_turn()
+        tile += 1
+
+    game_over = False
+    while not game_over and not tile == 9:
+
+        tile += 1
+        game_over = ai_turn1()
+
+        if not game_over:
+
+            tile += 1
+            if user_turn():
+                game_over = True
+
+    print_board(board)
+    print("Game finished.")
 
 main()
