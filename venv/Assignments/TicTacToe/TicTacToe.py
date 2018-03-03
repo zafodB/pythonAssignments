@@ -4,6 +4,7 @@
 
 import copy
 
+
 def main():
 
     board = [["." for j in range(3)] for i in range(3)]
@@ -68,8 +69,6 @@ def main():
         def find_best_move(on_map, char):
             pos_nxt_map = consider_possibilities(on_map, char)
 
-            # print(pos_nxt_map)
-
             best_value = 0
             best_v_x = -1
             best_v_y = -1
@@ -82,7 +81,6 @@ def main():
                         best_v_x = x
                         best_v_y = y
                     x += 1
-
                 y += 1
 
             return [best_v_x, best_v_y, best_value]
@@ -99,7 +97,7 @@ def main():
         next_move_x = -1
         next_move_y = -1
 
-
+        print(next_turn_win)
         y = 0
         while y < 3:
             x = 0
@@ -116,7 +114,7 @@ def main():
                     found_next_turn = True
                 elif not next_turn_win[y][x] == 0:
                     possible_moves += 1
-                    if possible_moves == 1:
+                    if possible_moves == 1 and not found_next_turn:
                         next_move_x = x
                         next_move_y = y
                 x += 1
@@ -145,10 +143,6 @@ def main():
                         # Place a tile onto the hypothetical board
                         hypot_board[y][x] = "O"
 
-                        # Find how user would react to it.
-                        # next_user_move = find_best_move(hypot_board, "X")
-
-                        # hypot_board2 = copy_board(hypot_board)
                         y1 = 0
                         while y1 < 3:
                             x1 = 0
@@ -166,17 +160,6 @@ def main():
                                     options[y][x] += 5
                                 x1 += 1
                             y1 += 1
-
-                        # options[y][x] += find_best_move(hypot_board2, "O")[2]
-
-
-
-
-                        # Place user's most probable reaction onto the hypothetical board
-                        # hypot_board[next_user_move[1]][next_user_move[0]] = "X"
-
-                        # See your best (winning) move in the next round
-                        # options[y][x] = find_best_move(hypot_board, "O")
                     else:
                         options[y][x] = -100
 
@@ -192,30 +175,17 @@ def main():
                 x = 0
                 while x < 3:
 
-                    # print(options[y][x], end="")
-                    # print(" ", end="")
+                    print(options[y][x], end="")
+                    print(" ", end="")
 
                     if options[y][x] >= best_option_cost:
                         best_option_cost = options[y][x]
-                        # best_option_x = options[y][x][0]
-                        # best_option_y = options[y][x][1]
                         best_option_x = x
                         best_option_y = y
                     x += 1
 
-                # print()
+                print()
                 y += 1
-            # for row in options:
-            #     for cell in row:
-            #         print(cell, end="")
-            #         print(" ", end="")
-            #         # See if some of the moves on the hypothetical board leads to victory in your next move.
-            #         # If it does, make the move leading to victory. If not, make default non-losing move.
-            #         if cell[2] > best_option_cost:
-            #             best_option_cost = cell[2]
-            #             best_option_x = cell[0]
-            #             best_option_y = cell[1]
-            #     print()
 
             # Place the tile and return True if it is a winning move.
             return place_tile(best_option_x, best_option_y, "O")
