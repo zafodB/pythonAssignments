@@ -274,16 +274,12 @@ def main():
                 x = 0
                 while x < 3:
 
-                    print(options[y][x], end="")
-                    print(" ", end="")
-
                     if options[y][x] >= best_option_cost:
                         best_option_cost = options[y][x]
                         best_option_x = x
                         best_option_y = y
-                    x += 1
 
-                print()
+                    x += 1
                 y += 1
 
             # Place the tile and return True if it is a winning move.
