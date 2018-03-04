@@ -6,12 +6,7 @@ import copy
 
 
 def main():
-
     board = [["." for j in range(3)] for i in range(3)]
-
-    board = [[".", ".", "."],
-             [".", ".", "."],
-             [".", ".", "."]]
 
     def print_board(to_print):
         print("___________")
@@ -48,184 +43,13 @@ def main():
                     return place_tile(1, 0, "X")
                 if user_input == "9" and board[0][2] == ".":
                     return place_tile(2, 0, "X")
-                print("Try again.")
+            print("Try again.")
 
     def place_tile(x, y, char):
         nonlocal board
         board[y][x] = char
 
         return is_win_move(board, x, y, char)
-
-    def copy_board(in_board):
-        out_board = [0 for l in range(3)]
-        i = 0
-        for row in in_board:
-            out_board[i] = list(row)
-            i += 1
-        return out_board
-
-    def ai_turn():
-
-        def find_best_move(on_map, char):
-            pos_nxt_map = consider_possibilities(on_map, char)
-
-            best_value = 0
-            best_v_x = -1
-            best_v_y = -1
-            y = 0
-            while y < 3:
-                x = 0
-                while x < 3:
-                    if pos_nxt_map[y][x] > best_value:
-                        best_value = pos_nxt_map[y][x]
-                        best_v_x = x
-                        best_v_y = y
-                    x += 1
-                y += 1
-
-            return [best_v_x, best_v_y, best_value]
-
-        nonlocal board
-
-        # Difficulty level 1
-        # Checks if AI can win or lose immediately. If it can win, it wins. If it could lose, it blocks.
-        # Also checks if this isn't the last turn. If so, places the necessary last tile.
-        next_turn_win = consider_possibilities(board, "O")
-        found_next_turn = False
-        win_next_turn = False
-        possible_moves = 0
-        next_move_x = -1
-        next_move_y = -1
-
-        print(next_turn_win)
-        y = 0
-        while y < 3:
-            x = 0
-            while x < 3:
-                if next_turn_win[y][x] == 100:
-                    found_next_turn = True
-                    win_next_turn = True
-                    next_move_x = x
-                    next_move_y = y
-                    break
-                elif next_turn_win[y][x] == 45:
-                    next_move_x = x
-                    next_move_y = y
-                    found_next_turn = True
-                elif not next_turn_win[y][x] == 0:
-                    possible_moves += 1
-                    if possible_moves == 1 and not found_next_turn:
-                        next_move_x = x
-                        next_move_y = y
-                x += 1
-
-            if win_next_turn:
-                break
-            y += 1
-
-        if found_next_turn:
-            return place_tile(next_move_x, next_move_y, "O")
-        elif possible_moves == 1:
-            return place_tile(next_move_x, next_move_y, "O")
-
-        # Difficulty level 2
-        else:
-            options = [[0 for l in range(3)] for k in range(3)]
-
-            y = 0
-            while y < 3:
-                x = 0
-                while x < 3:
-                    # Copying exiting game board to a hypothetical one.
-                    hypot_board = copy_board(board)
-
-                    if is_valid_move(hypot_board, x, y):
-                        # Place a tile onto the hypothetical board
-                        hypot_board[y][x] = "O"
-
-                        y1 = 0
-                        while y1 < 3:
-                            x1 = 0
-                            while x1 < 3:
-
-                                if evaluate_turn(hypot_board, x1, y1, "X") == 2:
-                                    hypot_board2 = copy_board(hypot_board)
-                                    hypot_board2[y1][x1] = "X"
-
-                                    if find_best_move(hypot_board2, "O")[2] == 45:
-                                        options[y][x] = -100
-                                    else:
-                                        options[y][x] += 5
-                                else:
-                                    options[y][x] += 5
-                                x1 += 1
-                            y1 += 1
-                    else:
-                        options[y][x] = -100
-
-                    x += 1
-                y += 1
-
-            best_option_cost = 0
-            best_option_x = 0
-            best_option_y = 0
-
-            y = 0
-            while y < 3:
-                x = 0
-                while x < 3:
-
-                    print(options[y][x], end="")
-                    print(" ", end="")
-
-                    if options[y][x] >= best_option_cost:
-                        best_option_cost = options[y][x]
-                        best_option_x = x
-                        best_option_y = y
-                    x += 1
-
-                print()
-                y += 1
-
-            # Place the tile and return True if it is a winning move.
-            return place_tile(best_option_x, best_option_y, "O")
-
-    def consider_possibilities(hboard, nchar):
-        next_turn_map = [[0 for j in range(3)] for i in range(3)]
-
-        y = 0
-        while y < 3:
-            x = 0
-
-            while x < 3:
-                eval_res = evaluate_turn(hboard, x, y, nchar)
-                if not eval_res:
-                    x += 1
-                    continue
-                elif eval_res == 45:
-                    next_turn_map[y][x] = 45
-                elif eval_res == 2:
-                    next_turn_map[y][x] = 2
-                elif eval_res == 100:
-                    next_turn_map[y][x] = 100
-
-                x += 1
-            y += 1
-
-        return next_turn_map
-
-    def evaluate_turn(hboard, mx, my, mchar):
-        if not is_valid_move(hboard, mx, my):
-            return False
-        if is_win_move(hboard, mx, my, mchar):
-            return 100
-        if need_to_block(hboard, mx, my, mchar):
-            return 45
-
-        return 2
-
-    def is_valid_move(hboard, x, y):
-        return hboard[y][x] == "."
 
     def is_win_move(hboard, x, y, mchar):
         board_vals = [[0 for k in range(3)] for l in range(3)]
@@ -276,31 +100,216 @@ def main():
 
         return False
 
-    def need_to_block(hboard, x, y, mchar):
-        if mchar == "X":
-            return is_win_move(hboard, x, y, "O")
+    def ai_turn():
+
+        def copy_board(in_board):
+            out_board = [0 for l in range(3)]
+            i = 0
+            for row in in_board:
+                out_board[i] = list(row)
+                i += 1
+            return out_board
+
+        def find_best_move(on_map, char):
+            pos_nxt_map = consider_possibilities(on_map, char)
+
+            best_value = 0
+            best_v_x = -1
+            best_v_y = -1
+            y = 0
+            while y < 3:
+                x = 0
+                while x < 3:
+                    if pos_nxt_map[y][x] > best_value:
+                        best_value = pos_nxt_map[y][x]
+                        best_v_x = x
+                        best_v_y = y
+                    x += 1
+                y += 1
+
+            return [best_v_x, best_v_y, best_value]
+
+        def consider_possibilities(hboard, nchar):
+            next_turn_map = [[0 for j in range(3)] for i in range(3)]
+
+            y = 0
+            while y < 3:
+                x = 0
+
+                while x < 3:
+                    eval_res = evaluate_turn(hboard, x, y, nchar)
+                    if not eval_res:
+                        x += 1
+                        continue
+                    elif eval_res == 45:
+                        next_turn_map[y][x] = 45
+                    elif eval_res == 2:
+                        next_turn_map[y][x] = 2
+                    elif eval_res == 100:
+                        next_turn_map[y][x] = 100
+
+                    x += 1
+                y += 1
+
+            return next_turn_map
+
+        def evaluate_turn(hboard, mx, my, mchar):
+            if not is_valid_move(hboard, mx, my):
+                return False
+            if is_win_move(hboard, mx, my, mchar):
+                return 100
+            if need_to_block(hboard, mx, my, mchar):
+                return 45
+
+            return 2
+
+        def is_valid_move(hboard, x, y):
+            return hboard[y][x] == "."
+
+        def need_to_block(hboard, x, y, mchar):
+            if mchar == "X":
+                return is_win_move(hboard, x, y, "O")
+            else:
+                return is_win_move(hboard, x, y, "X")
+
+        nonlocal board
+
+        # Difficulty level 1
+        # Checks if AI can win or lose immediately. If it can win, it wins. If it could lose, it blocks.
+        # Also checks if this is the last turn. If so, places the  last tile (and no further calculations are performed).
+        next_turn_win = consider_possibilities(board, "O")
+        found_next_turn = False
+        win_next_turn = False
+        possible_moves = 0
+        next_move_x = -1
+        next_move_y = -1
+
+        y = 0
+        while y < 3:
+            x = 0
+            while x < 3:
+
+                # Can it win in next turn?
+                if next_turn_win[y][x] == 100:
+                    found_next_turn = True
+                    win_next_turn = True
+                    next_move_x = x
+                    next_move_y = y
+                    break
+
+                # Does it need to block in next turn?
+                elif next_turn_win[y][x] == 45:
+                    next_move_x = x
+                    next_move_y = y
+                    found_next_turn = True
+
+                elif not next_turn_win[y][x] == 0:
+
+                    # Is there only one available move?
+                    possible_moves += 1
+                    if possible_moves == 1 and not found_next_turn:
+                        next_move_x = x
+                        next_move_y = y
+                x += 1
+
+            if win_next_turn:
+                break
+            y += 1
+
+        if found_next_turn:
+            return place_tile(next_move_x, next_move_y, "O")
+        elif possible_moves == 1:
+            return place_tile(next_move_x, next_move_y, "O")
+
+        # Difficulty level 2
         else:
-            return is_win_move(hboard, x, y, "X")
+            options = [[0 for l in range(3)] for k in range(3)]
 
-    tile = 0
-    if input("Wanna start? y/n") == "y":
+            # Consider placing own tile on every available position on the board.
+            y = 0
+            while y < 3:
+                x = 0
+                while x < 3:
 
-        user_turn()
-        tile += 1
+                    if is_valid_move(board, x, y):
+                        # Copying exiting game board to a hypothetical one.
+                        hypot_board = copy_board(board)
 
-    game_over = False
-    while not game_over and not tile == 9:
+                        # Place a tile onto the hypothetical board
+                        hypot_board[y][x] = "O"
 
-        tile += 1
-        game_over = ai_turn()
+                        # After own tile has been placed on the hypothetical board, consider every possible next user move.
+                        y1 = 0
+                        while y1 < 3:
+                            x1 = 0
+                            while x1 < 3:
 
-        if not game_over and not tile == 9:
+                                # In case the user's move is not forced (i.e. user has to put a blocking tile), perform this move.
+                                if evaluate_turn(hypot_board, x1, y1, "X") == 2:
+                                    hypot_board2 = copy_board(hypot_board)
+                                    hypot_board2[y1][x1] = "X"
+
+                                    # If in reaction to the user's hypothetical move we need to block in the next move, then this option should not be taken.
+                                    if find_best_move(hypot_board2, "O")[2] == 45:
+                                        options[y][x] = -100
+                                    else:
+                                        options[y][x] += 5
+                                else:
+                                    options[y][x] += 5
+                                x1 += 1
+                            y1 += 1
+                    else:
+                        options[y][x] = -100
+
+                    x += 1
+                y += 1
+
+            best_option_cost = 0
+            best_option_x = 0
+            best_option_y = 0
+
+            # Find the best move based on calculated weight of options.
+            y = 0
+            while y < 3:
+                x = 0
+                while x < 3:
+
+                    print(options[y][x], end="")
+                    print(" ", end="")
+
+                    if options[y][x] >= best_option_cost:
+                        best_option_cost = options[y][x]
+                        best_option_x = x
+                        best_option_y = y
+                    x += 1
+
+                print()
+                y += 1
+
+            # Place the tile and return True if it is a winning move.
+            return place_tile(best_option_x, best_option_y, "O")
+
+    def play_game():
+        tile = 0
+        if input("Wanna start? y/n") == "y":
+            user_turn()
             tile += 1
-            if user_turn():
-                game_over = True
 
-    print_board(board)
-    print("Game finished.")
+        game_over = False
+        while not game_over and not tile == 9:
+
+            tile += 1
+            game_over = ai_turn()
+
+            if not game_over and not tile == 9:
+                tile += 1
+                if user_turn():
+                    game_over = True
+
+        print_board(board)
+        print("Game finished.")
+
+    play_game()
 
 
 main()
