@@ -172,54 +172,55 @@ def main():
             else:
                 return is_win_move(hboard, x, y, "X")
 
+        def next_turn_win_lose(hboard, mchar):
+            next_turn_win = consider_possibilities(hboard, mchar)
+            found_next_turn = False
+            possible_moves = 0
+            next_move_x = -1
+            next_move_y = -1
+
+            y = 0
+            while y < 3:
+                x = 0
+                while x < 3:
+
+                    # Can it win in next turn?
+                    if next_turn_win[y][x] == 100:
+                        found_next_turn = True
+                        next_move_x = x
+                        next_move_y = y
+                        return [found_next_turn, next_move_x, next_move_y, -1]
+
+                    # Does it need to block in next turn?
+                    elif next_turn_win[y][x] == 45:
+                        next_move_x = x
+                        next_move_y = y
+                        found_next_turn = True
+
+                    elif not next_turn_win[y][x] == 0:
+
+                        # Is there only one available move?
+                        possible_moves += 1
+                        if possible_moves == 1 and not found_next_turn:
+                            next_move_x = x
+                            next_move_y = y
+                    x += 1
+
+                y += 1
+
+                return [found_next_turn, next_move_x, next_move_y, possible_moves]
+
         nonlocal board
 
         # Difficulty level 1
         # Checks if AI can win or lose immediately. If it can win, it wins. If it could lose, it blocks.
         # Also checks if this is the last turn. If so, places the  last tile (and no further calculations are performed).
-        next_turn_win = consider_possibilities(board, "O")
-        found_next_turn = False
-        win_next_turn = False
-        possible_moves = 0
-        next_move_x = -1
-        next_move_y = -1
+        immediate_turn = next_turn_win_lose(board, "O")
 
-        y = 0
-        while y < 3:
-            x = 0
-            while x < 3:
-
-                # Can it win in next turn?
-                if next_turn_win[y][x] == 100:
-                    found_next_turn = True
-                    win_next_turn = True
-                    next_move_x = x
-                    next_move_y = y
-                    break
-
-                # Does it need to block in next turn?
-                elif next_turn_win[y][x] == 45:
-                    next_move_x = x
-                    next_move_y = y
-                    found_next_turn = True
-
-                elif not next_turn_win[y][x] == 0:
-
-                    # Is there only one available move?
-                    possible_moves += 1
-                    if possible_moves == 1 and not found_next_turn:
-                        next_move_x = x
-                        next_move_y = y
-                x += 1
-
-            if win_next_turn:
-                break
-            y += 1
-
-        if found_next_turn:
-            return place_tile(next_move_x, next_move_y, "O")
-        elif possible_moves == 1:
-            return place_tile(next_move_x, next_move_y, "O")
+        if immediate_turn[0]:
+            return place_tile(immediate_turn[1], immediate_turn[2], "O")
+        elif immediate_turn[3] == 1:
+            return place_tile(immediate_turn[1], immediate_turn[2], "O")
 
         # Difficulty level 2
         else:
@@ -238,43 +239,104 @@ def main():
                         # Place a tile onto the hypothetical board
                         hypot_board[y][x] = "O"
 
+                        print("THIS IS HYPOT BOARD")
+                        print(hypot_board[0])
+                        print(hypot_board[1])
+                        print(hypot_board[2])
                         # After own tile has been placed on the hypothetical board, consider every possible next user move.
                         y1 = 0
                         while y1 < 3:
                             x1 = 0
                             while x1 < 3:
 
-                                # In case the user's move is not forced (i.e. user has to put a blocking tile), perform this move.
-                                if evaluate_turn(hypot_board, x1, y1, "X") == 2:
+                                if is_valid_move(hypot_board, x1, y1):
                                     hypot_board2 = copy_board(hypot_board)
                                     hypot_board2[y1][x1] = "X"
 
-                                    # If in reaction to the user's hypothetical move we need to block in the next move, then this option should not be taken.
-                                    if find_best_move(hypot_board2, "O")[2] == 45:
-                                        options[y][x] = -100
-                                    else:
-                                        options[y][x] += 5
-                                else:
-                                    options[y][x] += 5
+                                    if not next_turn_win_lose(hypot_board2, "O")[3] == -1:
+
+                                        block_rate = 0
+                                        y2 = 0
+                                        while y2 < 3:
+                                            x2 = 0
+                                            while x2 < 3:
+                                                if is_valid_move(hypot_board2, x2, y2) and not is_win_move(hypot_board2,
+                                                                                                           x2, y2, "O"):
+                                                    if need_to_block(hypot_board2, x2, y2, "O"):
+                                                        block_rate += 1
+
+                                                    hypot_board3 = copy_board(hypot_board2)
+                                                    hypot_board3[y2][x2] = "O"
+
+                                                    print()
+                                                    print()
+                                                    print("This is hypotboard3:")
+                                                    print_board(hypot_board3)
+
+                                                    if not next_turn_win_lose(hypot_board3, "X")[3] == -1:
+                                                        y3 = 0
+                                                        while y3 < 3:
+                                                            x3 = 0
+                                                            while x3 < 3:
+                                                                if is_valid_move(hypot_board3, x3,
+                                                                                 y3) and not is_win_move(hypot_board3,
+                                                                                                         x3, y3, "X"):
+                                                                    hypot_board4 = copy_board(hypot_board3)
+                                                                    hypot_board4[y3][x3] = "X"
+
+                                                                    print("This is hypotboard4:")
+                                                                    print_board(hypot_board4)
+
+                                                                    block_rate2 = 0
+
+                                                                    nex_turn_possibilities = consider_possibilities(
+                                                                        hypot_board4, "O");
+                                                                    # print(nex_turn_possibilities[0])
+                                                                    # print(nex_turn_possibilities[1])
+                                                                    # print(nex_turn_possibilities[2])
+                                                                    #
+                                                                    print(consider_possibilities(hypot_board4, "O"))
+
+                                                                    for row in consider_possibilities(hypot_board4,
+                                                                                                      "O"):
+                                                                        for item in row:
+                                                                            if item == 45:
+                                                                                block_rate2 += 1
+
+                                                                    print("Block rate is: " + str(block_rate2))
+                                                                    if block_rate2 > 1:
+                                                                        options[y][x] -= 10
+
+                                                                x3 += 1
+                                                            y3 += 1
+                                                x2 += 1
+                                            y2 += 1
+
+                                        if block_rate > 1:
+                                            options[y][x] -= 20
+
                                 x1 += 1
                             y1 += 1
                     else:
-                        options[y][x] = -100
+                        options[y][x] = -550
 
                     x += 1
                 y += 1
 
-            best_option_cost = 0
+            best_option_cost = -2000
             best_option_x = 0
             best_option_y = 0
 
+            print(options[0])
+            print(options[1])
+            print(options[2])
             # Find the best move based on calculated weight of options.
             y = 0
             while y < 3:
                 x = 0
                 while x < 3:
 
-                    if options[y][x] >= best_option_cost:
+                    if options[y][x] > best_option_cost:
                         best_option_cost = options[y][x]
                         best_option_x = x
                         best_option_y = y
