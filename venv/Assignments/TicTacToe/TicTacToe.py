@@ -208,7 +208,7 @@ def main():
 
                 y += 1
 
-                return [found_next_turn, next_move_x, next_move_y, possible_moves]
+            return [found_next_turn, next_move_x, next_move_y, possible_moves]
 
         nonlocal board
 
