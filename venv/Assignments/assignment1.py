@@ -12,7 +12,7 @@ testData = np.genfromtxt("irisred_tst.csv", delimiter=',')
 # Plot data on Scatter plot, different colors for different classes.
 i = 0
 while i < trainingData.shape[0]:
-    if trainingData[i,2] == 1 :
+    if trainingData[i, 2] == 1:
         plotlib.scatter(trainingData[i,0], trainingData[i,1], c = "r")
     else:
         plotlib.scatter(trainingData[i,0], trainingData[i,1], c = "g")

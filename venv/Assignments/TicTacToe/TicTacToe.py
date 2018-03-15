@@ -8,6 +8,9 @@ import copy
 def main():
     board = [["." for j in range(3)] for i in range(3)]
 
+    difficulty = 3
+
+    # Prints out any board
     def print_board(to_print):
         print("___________")
 
@@ -19,6 +22,7 @@ def main():
 
         print("¯¯¯¯¯¯¯¯¯¯¯")
 
+    # Takes user's input and calls place_tile(), if move is possible. Returns True, if it's a winning move, False otherwise.
     def user_turn():
         print_board(board)
 
@@ -45,12 +49,14 @@ def main():
                     return place_tile(2, 0, "X")
             print("Try again.")
 
+    # Places tile on board and returns True, if it's a winning move.
     def place_tile(x, y, char):
         nonlocal board
         board[y][x] = char
 
         return is_win_move(board, x, y, char)
 
+    # Takes board, coordinates and character as arguments. Places character onto the board on specified coordinates and returns, if this is a winning move.
     def is_win_move(hboard, x, y, mchar):
         board_vals = [[0 for k in range(3)] for l in range(3)]
 
@@ -100,8 +106,10 @@ def main():
 
         return False
 
+    # Makes AI move, depending on the selected level of difficulty.
     def ai_turn():
 
+        # Creates a copy of a board (to test out hypothetical moves).
         def copy_board(in_board):
             out_board = [0 for l in range(3)]
             i = 0
@@ -110,25 +118,7 @@ def main():
                 i += 1
             return out_board
 
-        def find_best_move(on_map, char):
-            pos_nxt_map = consider_possibilities(on_map, char)
-
-            best_value = 0
-            best_v_x = -1
-            best_v_y = -1
-            y = 0
-            while y < 3:
-                x = 0
-                while x < 3:
-                    if pos_nxt_map[y][x] > best_value:
-                        best_value = pos_nxt_map[y][x]
-                        best_v_x = x
-                        best_v_y = y
-                    x += 1
-                y += 1
-
-            return [best_v_x, best_v_y, best_value]
-
+        # Looks at passed board and considers immediate wins or losses.
         def consider_possibilities(hboard, nchar):
             next_turn_map = [[0 for j in range(3)] for i in range(3)]
 
@@ -153,6 +143,7 @@ def main():
 
             return next_turn_map
 
+        # Checks, if placing a tile on specified coordinate results in win or a lose.
         def evaluate_turn(hboard, mx, my, mchar):
             if not is_valid_move(hboard, mx, my):
                 return False
@@ -163,15 +154,18 @@ def main():
 
             return 2
 
+        # Checks, if a move is possible (that there are no tiles in the way)
         def is_valid_move(hboard, x, y):
             return hboard[y][x] == "."
 
+        # Checks if next move can be a winning move for the opposing player.
         def need_to_block(hboard, x, y, mchar):
             if mchar == "X":
                 return is_win_move(hboard, x, y, "O")
             else:
                 return is_win_move(hboard, x, y, "X")
 
+        # Checks, if it can immediately win or lose. If yes, returns coordinates where to place tile appropriately.
         def next_turn_win_lose(hboard, mchar):
             next_turn_win = consider_possibilities(hboard, mchar)
             found_next_turn = False
@@ -222,7 +216,7 @@ def main():
         elif immediate_turn[3] == 1:
             return place_tile(immediate_turn[1], immediate_turn[2], "O")
 
-        # Difficulty level 2
+        # Difficulty level 1
         else:
             options = [[0 for l in range(3)] for k in range(3)]
 
@@ -239,10 +233,6 @@ def main():
                         # Place a tile onto the hypothetical board
                         hypot_board[y][x] = "O"
 
-                        print("THIS IS HYPOT BOARD")
-                        print(hypot_board[0])
-                        print(hypot_board[1])
-                        print(hypot_board[2])
                         # After own tile has been placed on the hypothetical board, consider every possible next user move.
                         y1 = 0
                         while y1 < 3:
@@ -253,7 +243,8 @@ def main():
                                     hypot_board2 = copy_board(hypot_board)
                                     hypot_board2[y1][x1] = "X"
 
-                                    if not next_turn_win_lose(hypot_board2, "O")[3] == -1:
+                                    # Difficulty level 2
+                                    if not next_turn_win_lose(hypot_board2, "O")[3] == -1 and not difficulty == 1:
 
                                         block_rate = 0
                                         y2 = 0
@@ -268,12 +259,9 @@ def main():
                                                     hypot_board3 = copy_board(hypot_board2)
                                                     hypot_board3[y2][x2] = "O"
 
-                                                    print()
-                                                    print()
-                                                    print("This is hypotboard3:")
-                                                    print_board(hypot_board3)
-
-                                                    if not next_turn_win_lose(hypot_board3, "X")[3] == -1:
+                                                    # Difficulty level 3
+                                                    if not next_turn_win_lose(hypot_board3, "X")[
+                                                               3] == -1 and difficulty == 3:
                                                         y3 = 0
                                                         while y3 < 3:
                                                             x3 = 0
@@ -284,18 +272,7 @@ def main():
                                                                     hypot_board4 = copy_board(hypot_board3)
                                                                     hypot_board4[y3][x3] = "X"
 
-                                                                    print("This is hypotboard4:")
-                                                                    print_board(hypot_board4)
-
                                                                     block_rate2 = 0
-
-                                                                    nex_turn_possibilities = consider_possibilities(
-                                                                        hypot_board4, "O");
-                                                                    # print(nex_turn_possibilities[0])
-                                                                    # print(nex_turn_possibilities[1])
-                                                                    # print(nex_turn_possibilities[2])
-                                                                    #
-                                                                    print(consider_possibilities(hypot_board4, "O"))
 
                                                                     for row in consider_possibilities(hypot_board4,
                                                                                                       "O"):
@@ -303,7 +280,6 @@ def main():
                                                                             if item == 45:
                                                                                 block_rate2 += 1
 
-                                                                    print("Block rate is: " + str(block_rate2))
                                                                     if block_rate2 > 1:
                                                                         options[y][x] -= 10
 
@@ -327,9 +303,6 @@ def main():
             best_option_x = 0
             best_option_y = 0
 
-            print(options[0])
-            print(options[1])
-            print(options[2])
             # Find the best move based on calculated weight of options.
             y = 0
             while y < 3:
@@ -347,22 +320,30 @@ def main():
             # Place the tile and return True if it is a winning move.
             return place_tile(best_option_x, best_option_y, "O")
 
+    # Starts the game
     def play_game():
         tile = 0
+        nonlocal difficulty
+
+        user_input = input("Select the level of difficulty: (1 - 3)")
+
+        if user_input == "1":
+            difficulty = 1
+        elif user_input == "2":
+            difficulty = 2
+
         if input("Wanna start? y/n") == "y":
             user_turn()
             tile += 1
 
         game_over = False
         while not game_over and not tile == 9:
-
             tile += 1
             game_over = ai_turn()
 
             if not game_over and not tile == 9:
                 tile += 1
-                if user_turn():
-                    game_over = True
+                game_over = user_turn()
 
         print_board(board)
         print("Game finished.")

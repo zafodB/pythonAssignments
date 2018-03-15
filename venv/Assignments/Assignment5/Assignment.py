@@ -8,26 +8,26 @@ import numpy
 
 
 class Perceptron:
-
-    bias_number = 0
-    learnning_rate = 0
+    learning_rate = 0
     iterations = 0
+    weights = None
 
-    def __init__(self, M, mu, tmax):
-        self.bias_number = M
-        self.learnning_rate = mu
+    def __init__(self, mu, tmax):
+        # self.bias_number = M      # NEVER USED!!!
+        self.learning_rate = mu
         self.iterations = tmax
 
-        print("Initialised class")
+        print("Initialised class with Learning rate = %f and Iterations = %d" % (mu, tmax))
 
     def train(self, XX, t):
-        print("wut")
+        print("Training...")
 
         rows = len(XX)
         columns = len(XX[0])
 
         start_matrix = [[1 for i in range(columns + 1)] for j in range(rows)]
 
+        # Add 1's to beginning
         m = 0
         while m < rows:
             n = 1
@@ -37,57 +37,88 @@ class Perceptron:
                 n += 1
             m += 1
 
-        weights_w = [(random.uniform(0.0001, 0.5))for w in range(columns+1)]
+        # Initialise random weights
+        weights_w = [(random.uniform(0.0001, 0.5)) for w in range(columns + 1)]
 
-        print(weights_w)
+        order = list(range(rows))
+        random.shuffle(order)
+
         k = 0
         while k < self.iterations:
-            random.shuffle(start_matrix)
 
-            i = 0
-            while i < len(start_matrix):
+            for i in order:
                 x = start_matrix[i]
-                xt = numpy.transpose(x)
+                sigma = self.sigmoid(numpy.matmul(weights_w, numpy.transpose(x)))
+                delta = t[i] - sigma
 
-                sigma = self.sigmoid(weights_w * xt)
+                weights_w = weights_w + numpy.multiply(self.learning_rate * delta * sigma * (1 - sigma), x)
 
-                delta = [0 for nn in range(len(sigma))]
-                n = 0
-                while n < len(sigma):
-                    delta[n] = t[i] - sigma[n]
-                    n += 1
-
-                mm = 0
-                while mm < len(weights_w):
-                    weights_w[mm] = weights_w[mm] + (1 * delta[mm] * sigma[mm] * (1 - sigma[mm]) * x[mm])
-                    mm += 1
-
-                i += 1
             k += 1
 
-        print(weights_w)
-        # print(start_matrix)
+        self.weights = weights_w
 
     def sigmoid(self, z):
-        # print("ziiigmmaaa")
-        length = len(z)
-        i = 0
-        output = [0 for l in range(length)]
+        try:
+            length = len(z)
+            i = 0
+            output = [0 for l in range(length)]
 
-        while i < length:
-            output[i] = (1 / (1 + math.e ** -z[i]))
-            i += 1
+            while i < length:
+                output[i] = (1 / (1 + math.e ** -z[i]))
+                i += 1
+
+            return output
+
+        except TypeError:
+            return 1 / (1 + math.e ** -z)
+
+    def predict(self, XX, w):
+        print("Predicting...")
+
+        rows = len(XX)
+        columns = len(XX[0])
+
+        x = [[1 for i in range(columns + 1)] for j in range(rows)]
+
+        m = 0
+        while m < rows:
+            n = 1
+            while n < columns + 1:
+                x[m][n] = XX[m][n - 1]
+
+                n += 1
+            m += 1
+
+        return self.sigmoid(numpy.matmul(x, w))
+
+    def classify(self, XX, w):
+        print("Classifying...")
+
+        rows = len(XX)
+        columns = len(XX[0])
+
+        x = [[1 for i in range(columns + 1)] for j in range(rows)]
+
+        m = 0
+        while m < rows:
+            n = 1
+            while n < columns + 1:
+                x[m][n] = XX[m][n - 1]
+
+                n += 1
+            m += 1
+
+        output = []
+
+        for z in self.sigmoid(numpy.matmul(x, w)):
+            output.append((numpy.sign(z - 0.5) + 1) / 2)
 
         return output
 
-    def predict(self, XX, w):
-        print("wut")
-
     def mse(self, t, y):
-        print("Calculating mean square error.")
-
         length = len(t)
         if not length == len(y):
+            print("Lengths of data don't match.")
             return False
 
         square_error = 0
@@ -99,32 +130,105 @@ class Perceptron:
 
         return square_error / length
 
-    def classify(self, XX, w):
-        print("wut")
+
+instance1 = Perceptron(100, 1000)
+
+and_matrix = [[0, 0],
+              [0, 1],
+              [1, 0],
+              [1, 1]]
+and_results = [0, 0, 0, 1]
+instance1.train(and_matrix, and_results)
+
+# predictions = instance1.predict(and_matrix, instance1.weights)
+predictions = instance1.classify(and_matrix, instance1.weights)
+
+print(predictions)
+print("Mean square error is: " + str(instance1.mse(predictions, and_results)))
+print()
+
+'''
+Combination of tried learning rates and Max Iterations.
+
++---------------+----------------+-------------------+
+| Learning Rate | Max Iterations | Mean Square Error |
++---------------+----------------+-------------------+
+|             1 |             10 |              0.25 |
+|             1 |            100 |               0.0 |
+|             1 |           1000 |               0.0 |
+|            10 |              1 |              0.25 |
+|            10 |             10 |               0.0 |
+|            10 |            100 |               0.0 |
+|            10 |           1000 |               0.0 |
+|           100 |             10 |              0.25 |
+|           100 |            100 |              0.25 |
+|           100 |           1000 |              0.25 |
++---------------+----------------+-------------------+
+
+Console output for Learning rate = 100 and max iterations = 1000:
+
+    Initialised class with Learning rate = 100 and Iterations = 1000
+    Training...
+    Classifying...
+    [0.0, 0.0, 0.0, 0.0]
+    Mean square error is: 0.25
+    
+In assignment it said we should use method 'predict' for classification of the data, but on Slack in an answer written 
+by teacher it said we need to use method 'classify'. In here, I decided to use method 'Classify', which yielded 
+mean square error to be either 0.0 or 0.25. If we used method 'predict', we would see greater variation of mean
+square error.
+'''
+
+instance2 = Perceptron(0.5, 1000)
+trainingDataIrisFeatures = numpy.genfromtxt("irisred_tr_features.csv", delimiter=',')
+trainingDataIrisTargets = numpy.genfromtxt("irisred_tr_targets.csv", delimiter=',')
+testDataIrisFeatures = numpy.genfromtxt("irisred_tst_features.csv", delimiter=',')
+testDataIrisTargets = numpy.genfromtxt("irisred_tst_targets.csv", delimiter=',')
+
+instance2.train(trainingDataIrisFeatures, trainingDataIrisTargets)
+
+predictions2 = instance2.predict(testDataIrisFeatures, instance2.weights)
+# predictions2 = instance2.classify(testDataIrisFeatures, instance2.weights)
+
+print(predictions2)
+
+print("Mean square error is: " + str(instance2.mse(predictions2, testDataIrisTargets)))
+
+'''
+Combination of tried Learning rates and max iterations. Best combinations indicated by (#) sign.
+
++---+---------------+----------------+--------------------+---+
+|   | Learning Rate | Max Iterations | Mean square error* |   |
++---+---------------+----------------+--------------------+---+
+|   |           0.1 |            100 |            0.08128 |   |
+| # |           0.1 |           1000 |            0.05448 | # |
+|   |           0.5 |            100 |            0.10843 |   |
+| # |           0.5 |           1000 |            0.05887 | # |
+|   |             1 |             10 |            0.45336 |   |
+|   |             1 |            100 |            0.09566 |   |
+|   |            10 |             10 |                0.5 |   |
+|   |            10 |            100 |            0.49999 |   |
+|   |            10 |           1000 |                0.5 |   |
++---+---------------+----------------+--------------------+---+
 
 
-instance = Perceptron(0, 1, 10)
+* values of mean square error only have 3 significant digits. The rest is influenced by the random initialisation of 
+weights (see line #41)
 
-# print(instance.sigmoid([0, 0.1, 1, 10, 100]))
+For this exercise, we used method 'Predict' instead of classify. This resulted in bigger variation of mean square 
+errors. The console output for Learning rate = 0.5 and max iterations = 1000:
 
-matrxx = [
-    [1, 3, 54, 76, 3],
-    [54, 65, 7, 76, 2],
-    [87, 0, -1, 76, 6]
-]
-
-matrxx2 = [
-    [0, 0],
-    [0, 1],
-    [1, 0],
-    [1, 1]
-]
-
-training2 = [0, 0, 0, 1]
-instance.train(matrxx2, training2)
-
-# t = [2.001432074, 3.593956593, 8.439908051, 3.409160294, 6.82743551, 9.041002094, 7.341822748, 5.911280432, 1.509472891, 3.655158303, 7.663951458, 0.652352025, 7.967413895, 3.275054869, 2.157349194, 2.315865342, 1.906791492, 6.030138405, 8.384114734, 2.591674876, 2.67821344, 4.988229593, 8.185783656, 2.681385354, 6.770900328, 1.252404912, 8.499207465, 1.167087192]
-# y =[ 1.001432074, 2.593956593, 7.439908051, 4.409160294, 8.82743551, 8.041002094, 6.341822748, 4.911280432, 0.509472891, 2.655158303, 6.663951458, -0.347647975, 6.967413895, 2.275054869, 1.157349194, 1.315865342, 0.906791492, 5.030138405, 7.384114734, 1.591674876, 1.67821344, 3.988229593, 7.185783656, 1.681385354, 5.770900328, 0.252404912, 7.499207465, 0.167087192]
-
-# print(instance.mse(t, y))
-
+    Initialised class with Learning rate = 0.500000 and Iterations = 1000
+    Training...
+    Predicting...
+    [0.00012533531884559038, 2.2963975434349768e-05, 0.0005201427605457476, 0.27794955673996913, 0.10866039908881707, 
+    0.27794955673996913, 0.03590302573947519, 0.001797026475157538, 0.0033976199134746043, 0.003720922583508456, 
+    0.0006837568840026059, 0.011655962036702454, 0.0005201427605457476, 3.6234732965223386e-05, 0.0033976199134746043, 
+    0.000569793819715706, 0.0031023208189339176, 0.0019683244736913054, 0.00018051633427445095, 0.0031023208189339176, 
+    0.9458208280408328, 0.9837106498480438, 0.9998585568336825, 0.0509079568213671, 0.011655962036702454, 
+    0.9999151692194553, 0.9999956660584434, 0.8884294018104969, 0.9198035887088403, 0.9987830599498689, 
+    0.9999937576340384, 0.9999591079824521, 0.9868655031220751, 0.9999626729785944, 0.9999988563830569, 
+    0.9999659271863433, 0.9794310048128838, 0.995403776324168, 0.9999784061707594, 0.9262799930492598]
+    
+    Mean square error is: 0.051838531506984496
+'''
