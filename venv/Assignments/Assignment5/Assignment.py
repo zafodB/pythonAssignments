@@ -1,5 +1,8 @@
 '''
  * Created by filip on 10/03/2018
+
+ * For better readability see on Github:
+ https://github.com/zafodB/pythonAssignments/blob/master/venv/Assignments/Assignment5/Assignment.py
 '''
 
 import math
