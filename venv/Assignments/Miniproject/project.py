@@ -20,6 +20,7 @@ validation_data_dir = data_dir + '/validation' # REMOVED MOST IMAGES BEFORE UPLO
 # train_data_dir = data_dir + '/validation'
 # validation_data_dir = data_dir + '/training'
 
+
 data_generator = image.ImageDataGenerator(
     rotation_range=40,
         width_shift_range=0.2,
