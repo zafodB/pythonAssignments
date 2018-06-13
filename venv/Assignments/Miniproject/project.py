@@ -4,156 +4,186 @@
 import keras
 
 from keras.models import Sequential
-from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing import image
 from keras.layers import Activation, Dropout, Dense, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import applications
 
 import numpy as np
 
-# batch_size=100
-
 img_width, img_height = 100,100
 data_dir = 'data'
-train_data_dir = data_dir + '/training'
-validation_data_dir = data_dir + '/validation'
+train_data_dir = data_dir + '/training' # REMOVED MOST IMAGES BEFORE UPLOAD FROM DIRECTORY
+validation_data_dir = data_dir + '/validation' # REMOVED MOST IMAGES BEFORE UPLOAD FROM DIRECTORY
 
-# data_generator = ImageDataGenerator(rotation_range=40,
-#         width_shift_range=0.2,
-#         height_shift_range=0.2,
-#         rescale=1./255,
-#         shear_range=0.2,
-#         zoom_range=0.2,
-#         horizontal_flip=True,
-#         fill_mode='nearest')
-#
-# validation_data_generator = ImageDataGenerator(
-#         rescale=1./255)
 
-# training_data = data_generator.flow_from_directory(
-#     train_data_dir, target_size=(img_width,img_height), batch_size=100)
+# train_data_dir = data_dir + '/validation'
+# validation_data_dir = data_dir + '/training'
+
+data_generator = image.ImageDataGenerator(
+    rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        rescale=1./255,
+        shear_range=0.3,
+        zoom_range=0.3,
+        horizontal_flip=True,
+        fill_mode='nearest'
+)
+
+validation_data_generator = image.ImageDataGenerator(
+        rescale=1./255)
+
+training_data = data_generator.flow_from_directory(
+    train_data_dir, target_size=(img_width,img_height), batch_size=100)
+
+# import matplotlib.pyplot as plt
 #
-# validation_data = validation_data_generator.flow_from_directory(
-#     validation_data_dir, target_size=(img_width, img_height), batch_size=100)
+# count = 0
+# for i in training_data:
+#     # png.from_array(i[0][1], "L").save("test.png")
+#     plt.imshow(image.array_to_img(i[0][1]))
+#     plt.show()
 #
-#
+#     coount = count +1
+#     if (count > 5):
+#         break
+
+
+validation_data = validation_data_generator.flow_from_directory(
+    validation_data_dir, target_size=(img_width, img_height), batch_size=100)
+
+
 input_shape = (img_width, img_height, 3)
+
+training_data_size = 2454
+validation_data_size = 826
+
+batch_size = 200
+
+model = Sequential()
+model.add(Conv2D(16, (3, 3), input_shape= input_shape))
+model.add(Activation('softmax'))
+model.add(MaxPooling2D(pool_size=(2)))
 #
-#
-#
-#
-# model = Sequential()
-# model.add(Conv2D(32, (3, 3), input_shape= input_shape))
-# model.add(Activation('relu'))
-# model.add(MaxPooling2D(pool_size=(2)))
-#
-# model.add(Conv2D(32, (3, 3)))
-# model.add(Activation('relu'))
+model.add(Conv2D(16, (3, 3)))
+model.add(Activation('softmax'))
 # model.add(MaxPooling2D(pool_size=(2)))
 #
 # model.add(Conv2D(64, (3, 3)))
 # model.add(Activation('relu'))
 # model.add(MaxPooling2D(pool_size=(2)))
+#
+
+
+
+# model.add(Flatten(input_shape= input_shape))
+
+model.add(Flatten())
+# model.add(Dense(10000))
+model.add(Activation('softmax'))
+
+
+model.add(Dense(128))
+model.add(Activation('softmax'))
+model.add(Dropout(0.5))
+model.add(Dense(5))
+model.add(Activation('softmax'))
+
 
 #
 
-#
-#
-# model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-# model.add(Dense(64))
-# model.add(Activation('relu'))
-# model.add(Dropout(0.5))
-# model.add(Dense(5))
-# model.add(Activation('sigmoid'))
-#
-batch_size = 200
-#
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
 
-# model.compile(loss='categorical_crossentropy',
-#               optimizer='rmsprop',
-#               metrics=['accuracy'])
-#
-# model.fit_generator(
-#         training_data,
-#         steps_per_epoch=2000 // batch_size,
-#         epochs=15,
-#         validation_data=validation_data,
-#         validation_steps=800 // batch_size)
+model.fit_generator(
+        training_data,
+        steps_per_epoch=training_data_size // batch_size,
+        epochs=5,
+        # validation_data=validation_data,
+        # validation_steps=validation_data_size // batch_size
+)
+
+
 
 
 
 # classes = model.predict_generator(validation_data, 8, True)
 # print(classes)
 
-# score = model.evaluate_generator(validation_data, 8, True)
+score = model.evaluate_generator(validation_data)
+print(score)
+
+
+model = applications.VGG16(include_top=False, weights='imagenet')
+
+training_data_2 = validation_data_generator.flow_from_directory(
+        train_data_dir,
+        target_size=(img_width, img_height),
+        batch_size=batch_size,
+        class_mode=None,
+        shuffle=False)
+
+first_set_features = model.predict_generator(training_data_2, 10)
+
+np.save(open('first_set_weigths.npy', 'wb'), first_set_features)
+
+validation_data_2 = validation_data_generator.flow_from_directory(
+        validation_data_dir,
+        target_size=(img_height, img_width),
+        batch_size=batch_size,
+        class_mode=None,
+        shuffle=False)
+
+# score = model.evaluate_generator(validation_data)
 # print(score)
 
+features_validation = model.predict_generator(validation_data_2, 4)
 
-# model = applications.VGG16(include_top=False, weights='imagenet')
-#
-# training_data_2 = validation_data_generator.flow_from_directory(
-#         train_data_dir,
-#         target_size=(img_width, img_height),
-#         batch_size=batch_size,
-#         class_mode=None,  # this means our generator will only yield batches of data, no labels
-#         shuffle=False)
-#
-# first_set_features = model.predict_generator(training_data_2, 10)
-# # save the output as a Numpy array
-# np.save(open('first_set_weigths.npy', 'wb'), first_set_features)
-#
-# validation_data_2 = validation_data_generator.flow_from_directory(
-#         validation_data_dir,
-#         target_size=(img_height, img_width),
-#         batch_size=batch_size,
-#         class_mode=None,
-#         shuffle=False)
-# bottleneck_features_validation = model.predict_generator(validation_data_2, 4)
-# np.save(open('first_set_weigths_validation.npy', 'wb'), bottleneck_features_validation)
+np.save(open('first_set_weigths_validation.npy', 'wb'), features_validation)
 
-#
-# train_data = np.load(open('first_set_weigths.npy', 'rb'))
-#
-# print(str(train_data))
-#
-# train_labels = keras.utils.to_categorical(np.array([0] * 400 + [1] * 400 + [2] * 400 + [3] * 400 + [4] * 400), 5)
-#
-# validation_data = np.load(open('first_set_weigths_validation.npy', 'rb'))
-#
-#
-# validation_labels = keras.utils.to_categorical(np.array([0] * 160 + [1] * 160 + [2] * 160 + [3] * 160 + [4] * 160), 5)
-#
-# model = Sequential()
-# model.add(Flatten(input_shape=train_data.shape[1:]))
-# model.add(Dense(64))
-# model.add(Activation('relu'))
-# model.add(Dropout(0.5))
-# model.add(Dense(5))
-# model.add(Activation('sigmoid'))
-#
-#
-# model.compile(loss='categorical_crossentropy',
-#               optimizer='rmsprop',
-#               metrics=['accuracy'])
-#
-#
-# model.fit(train_data, train_labels,
-#           epochs=50,
-#           batch_size=batch_size,
-#           validation_data=(validation_data, validation_labels))
-#
-# score = model.evaluate(validation_data, validation_labels)
-# print(score)
-#
-# model.save_weights('pretrained_model_with_weights.h5')
+
+train_data = np.load(open('first_set_weigths.npy', 'rb'))
+
+print(str(train_data))
+
+train_labels = keras.utils.to_categorical(np.array([0] * 400 + [1] * 400 + [2] * 400 + [3] * 400 + [4] * 400), 5)
+
+validation_data = np.load(open('first_set_weigths_validation.npy', 'rb'))
+
+
+validation_labels = keras.utils.to_categorical(np.array([0] * 160 + [1] * 160 + [2] * 160 + [3] * 160 + [4] * 160), 5)
+
+model = Sequential()
+model.add(Flatten(input_shape=train_data.shape[1:]))
+model.add(Dense(64))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(5))
+model.add(Activation('softmax'))
+
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+
+model.fit(train_data, train_labels,
+          epochs=5,
+          batch_size=batch_size,
+        )
+
+score = model.evaluate(validation_data, validation_labels)
+print(score)
+
+model.save_weights('pretrained_model_with_weights.h5')
 
 
 
 
 
-# FINE TUNING NOT WORKING YET
-
-
+# FINE TUNING
 # validation_data_generator = ImageDataGenerator(
 #         rescale=1./255)
 #
